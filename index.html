@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>온정 — 디지털 유산 정리 플랫폼</title>
+  <style>
+    :root {
+      --accent: #2563eb;
+      --text-dark: #0f172a;
+      --text-light: #475569;
+      --bg: #f8fafc;
+      --white: #ffffff;
+    }
+    body {
+      margin: 0;
+      font-family: Inter, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+      background: var(--bg);
+      color: var(--text-dark);
+      padding: 0;
+    }
+
+    .wrap {
+      max-width: 680px;
+      margin: 0 auto;
+      padding: 28px 20px 60px;
+    }
+
+    .logo {
+      width: 100px;
+      height: auto;
+      margin-bottom: 24px;
+    }
+
+    h1 {
+      font-size: 22px;
+      line-height: 1.45;
+      margin-bottom: 18px;
+      font-weight: 700;
+    }
+
+    p.desc {
+      font-size: 15px;
+      color: var(--text-light);
+      line-height: 1.6;
+      margin-bottom: 36px;
+    }
+
+    /* 이메일 폼 */
+    .form-card {
+    background: var(--white);
+    padding: 20px;
+    border-radius: 14px;
+    box-shadow: 0 6px 18px rgba(0,0,0,0.07);
+    overflow: hidden; 
+    }
+    
+    label {
+      display: block;
+      margin-bottom: 6px;
+      font-weight: 600;
+      font-size: 14px;
+    }
+
+    input[type="email"] {
+    width: 100%;
+    padding: 12px;
+    border: 1px solid #d7dce3;
+    border-radius: 8px;
+    font-size: 15px;
+    margin-bottom: 14px;
+    box-sizing: border-box; 
+    }
+
+    button {
+      background: var(--accent);
+      color: white;
+      width: 100%;
+      padding: 12px;
+      border: none;
+      border-radius: 10px;
+      font-size: 15px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    button:disabled {
+      opacity: .6;
+      cursor: default;
+    }
+
+    .msg {
+      margin-top: 12px;
+      padding: 12px;
+      border-radius: 10px;
+      font-size: 14px;
+      display: none;
+    }
+    .success { background: #e6fcef; color: #0f5132; }
+    .error { background: #fde2e4; color: #8a1c1c; }
+
+    @media (min-width: 720px) {
+      h1 { font-size: 24px; }
+      p.desc { font-size: 16px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+
+    <!-- 로고 위치 -->
+    <img src="https://i.imgur.com/q2wnn4D.png" alt="온정 로고" class="logo" />
+
+    <h1>“당신이 떠난 뒤에도 남아 있을 디지털 유산,<br>온정이 보관하고 정리해드립니다.”</h1>
+
+    <p class="desc">
+      온정은 생전에는 개인의 디지털 유산을 체계적으로 정리하고,<br>
+      사후에는 지정한 위임자에게 법적·기술적으로 안전한 이전, 삭제, 기념화를 지원하는 유료 플랫폼입니다.
+    </p>
+
+    <div class="form-card">
+      <form id="launchForm" autocomplete="off">
+        <label for="email">런칭 소식을 받고 싶다면 이메일을 남겨주세요</label>
+        <input type="email" id="email" name="email" placeholder="example@domain.com" required />
+        <button id="submitBtn" type="submit">알림 신청하기</button>
+      </form>
+      <div id="msgBox" class="msg"></div>
+    </div>
+
+  </div>
+
+  <script>
+    const form = document.getElementById('launchForm');
+    const msgBox = document.getElementById('msgBox');
+    const submitBtn = document.getElementById('submitBtn');
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+
+      msgBox.style.display = 'none';
+      msgBox.className = 'msg';
+      msgBox.textContent = '';
+
+      const email = form.email.value.trim();
+
+      if (!validateEmail(email)) {
+        showMsg('유효한 이메일 주소를 입력해주세요.', 'error');
+        return;
+      }
+
+      submitBtn.disabled = true;
+      submitBtn.textContent = '전송 중...';
+
+      try {
+        // 여기에 이메일 저장 API 엔드포인트 연결
+        const res = await fetch('https://script.google.com/macros/s/AKfycbzrEBbHDVd7hr63KiLoG7XY4cFDlixw5eAzvdExbKSBXiOVYsLIiRgAwknDRFLdi35Ong/exec', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8' },
+        body: new URLSearchParams({ email }).toString()
+        });
+
+        if (res.ok) {
+          showMsg('등록이 완료되었습니다! 런칭 소식을 보내드릴게요.', 'success');
+          form.reset();
+        } else {
+          showMsg('전송에 실패했습니다. 잠시 후 다시 시도해주세요.', 'error');
+        }
+      } catch (err) {
+        showMsg('서버 오류가 발생했습니다: ' + err.message, 'error');
+      } finally {
+        submitBtn.disabled = false;
+        submitBtn.textContent = '알림 신청하기';
+      }
+    });
+
+    function validateEmail(email) {
+      return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+    }
+
+    function showMsg(text, type) {
+      msgBox.style.display = 'block';
+      msgBox.classList.add(type);
+      msgBox.textContent = text;
+    }
+  </script>
+</body>
+</html>
